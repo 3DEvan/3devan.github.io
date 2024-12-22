@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evan3DPrinting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            background-size: 400% 400%;
+            animation: gradientAnimation 10s ease infinite;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        header h1 {
+            font-size: 24px;
+        }
+        nav ul {
+            list-style: none;
+            display: flex;
+        }
+        nav ul li {
+            margin: 0 10px;
+        }
+        nav ul li a {
+            text-decoration: none;
+            color: #fff;
+            font-weight: bold;
+        }
+        nav ul li a:hover {
+            color: #007BFF;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            background: #ff4b4b;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+        .button:hover {
+            background: #e43e3e;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(8px);
+        }
+        .card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            margin-top: 20px;
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Evan3DPrinting</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Me</a></li>
+                <li><a href="videos.html">Videos</a></li>
+                <li><a href="filament.html">My filament</a></li>
+                <li><a href="whatis.html">What is 3d printing??</a></li>
+            </ul>
+        </nav>
+        <a href="https://youtube.com/@evanprinting" class="button" target="_blank">YouTube Link</a>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>WELCOME TO MY PAGE!</h2>
+            <p>I'm a 3d printing guy that 3d prints stuff, which is the best!</p>
+            <a href="stats.html" class="button">View my Beat Saber stats!</a>
+        </div>
+
+        <div class="card">
+            <h3>Printer i use</h3>
+            <p>BambuLab A1</p>
+            <img src="https://us.store.bambulab.com/cdn/shop/files/Group_48097_1_1200x.png?v=1734583869" alt="3d Printer A1">
+        </div>
+
+        <div class="card">
+            <h3>Filamnent</h3>
+            <p>I mostly use pla</p>
+            <img src="https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcROUSYhjwdeYuUsEbypjEHCdHfEnJLLisEOZ3MBZ9cmqABCjsg9A5dg-zCyKEIRlCafj7L1_7ruG38d33Wa3KWY156e7I9ox1Lgeegyy0UQRzhgwKIz5zJG" alt="Filament">
+        </div>
+
+        <div class="card">
+            <h3>Evan</h3>
+            <p>The 3dprinting guy</p>
+        </div>
+
+        <div class="card">
+            <h3>MM</h3>
+            <p>mm</p>
+        </div>
+
+        <a href="whatis.html" class="button">What is 3d Printing?</a>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 EvanPrinting. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>
