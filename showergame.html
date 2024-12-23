@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shower Game</title>
+    <title>ultra fun shower game (beta)</title>
     <style>
         body {
             margin: 0;
@@ -16,7 +16,7 @@
             height: 75px;
             background-color: red;
             border-radius: 50%;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
         .spike {
             position: absolute;
@@ -38,8 +38,7 @@
     <div id="balloon"></div>
     <div id="score">Score: 0</div>
 
-    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
-
+    <script defer src="./face-api.js"></script> <!-- Make sure face-api.js is available locally -->
     <script>
         const balloon = document.getElementById('balloon');
         const scoreElement = document.getElementById('score');
@@ -49,70 +48,69 @@
         let spikes = [];
         let balloonPosition = { x: gameWidth / 2, y: gameHeight / 2 };
 
+        // Set initial balloon position
+        balloon.style.left = `${balloonPosition.x}px`;
+        balloon.style.top = `${balloonPosition.y}px`;
+
         // Create a video element for webcam stream
         const video = document.createElement('video');
+        video.style.display = 'none';
+        document.body.append(video);
 
         // Setup webcam stream
         async function setupWebcam() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
                 video.srcObject = stream;
-                video.style.position = 'absolute';
-                video.style.width = '1px'; // Hide the video feed
-                video.style.height = '1px';
-                video.style.opacity = '0';
-                document.body.appendChild(video);
                 await video.play();
-                console.log('Webcam setup successful!');
+                console.log("Webcam setup successful!");
             } catch (err) {
-                alert('Error accessing webcam: ' + err.message);
-                console.error(err);
+                console.error("Error accessing webcam:", err);
             }
         }
 
         // Load face-api.js models
         async function loadModels() {
-            try {
-                console.log('Loading models...');
-                await faceapi.nets.ssdMobilenetv1.loadFromUri('/models');
-                await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
-                console.log('Models loaded successfully!');
-            } catch (err) {
-                alert('Error loading models: ' + err.message);
-                console.error(err);
-            }
+            await faceapi.nets.ssdMobilenetv1.loadFromUri('./models');
+            await faceapi.nets.faceLandmark68Net.loadFromUri('./models');
+            console.log("Face models loaded!");
         }
 
         // Detect face and move the balloon
         async function detectFace() {
-            if (video.readyState === 4) {
-                const detections = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options()).withFaceLandmarks();
+            if (!video.readyState) return;
 
-                if (detections.length > 0) {
-                    const { x, y } = detections[0].landmarks.getLeftEye();
-                    balloonPosition.x = Math.max(0, Math.min(gameWidth - balloon.offsetWidth, x - balloon.offsetWidth / 2));
-                    balloonPosition.y = Math.max(0, Math.min(gameHeight - balloon.offsetHeight, y - balloon.offsetHeight / 2));
+            const detections = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options()).withFaceLandmarks();
+            if (detections.length > 0) {
+                // Get the position of the nose landmark (or use another landmark, e.g., eyes)
+                const nose = detections[0].landmarks.getNose();
+                if (nose && nose[3]) {
+                    const { x, y } = nose[3]; // Nose tip position
+                    balloonPosition.x = (x / video.videoWidth) * gameWidth; // Scale to game width
+                    balloonPosition.y = (y / video.videoHeight) * gameHeight; // Scale to game height
+
+                    // Update balloon position
                     balloon.style.left = `${balloonPosition.x}px`;
                     balloon.style.top = `${balloonPosition.y}px`;
                 }
             }
         }
 
-        // Create a spike
+        // Generate spikes at random intervals
         function createSpike() {
             const spike = document.createElement('div');
             spike.classList.add('spike');
-            spike.style.left = `${Math.random() * (gameWidth - 20)}px`; // Random horizontal position
-            spike.style.top = `-40px`; // Start above the screen
+            spike.style.left = `${Math.random() * (gameWidth - 20)}px`; // random horizontal position
+            spike.style.top = `-40px`; // starts above the screen
             document.body.appendChild(spike);
             spikes.push(spike);
         }
 
-        // Update spikes
+        // Update spikes and handle collisions
         function updateSpikes() {
             spikes.forEach(spike => {
                 let spikeRect = spike.getBoundingClientRect();
-                spike.style.top = `${spikeRect.top + 5}px`; // Move spike downward
+                spike.style.top = `${spikeRect.top + 5}px`; // move spike downward
 
                 // Remove spikes that go off the screen
                 if (spikeRect.top > gameHeight) {
@@ -133,7 +131,7 @@
             });
         }
 
-        // Reset the game
+        // Reset the game when it's over
         function resetGame() {
             score = 0;
             spikes.forEach(spike => spike.remove());
@@ -148,13 +146,13 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Start the game
+        // Load models and start the game
         async function startGame() {
             await loadModels();
             await setupWebcam();
-            setInterval(detectFace, 100); // Detect face every 100ms
-            setInterval(createSpike, 2000); // Create spikes every 2 seconds
             gameLoop();
+            setInterval(createSpike, 2000);  // Create spikes every 2 seconds
+            setInterval(detectFace, 100);   // Detect face every 100 milliseconds
         }
 
         // Start the game
