@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shower Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #87CEEB; /* Light sky blue background */
+        }
+        #balloon {
+            position: absolute;
+            width: 50px;
+            height: 75px;
+            background-color: red;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .spike {
+            position: absolute;
+            width: 20px;
+            height: 40px;
+            background-color: #8B0000; /* Dark red for spikes */
+            border-radius: 5px 5px 0 0;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="balloon"></div>
+    <div id="score">Score: 0</div>
+
+    <script>
+        const balloon = document.getElementById('balloon');
+        const scoreElement = document.getElementById('score');
+        const gameWidth = window.innerWidth;
+        const gameHeight = window.innerHeight;
+        const balloonSpeed = 5;
+        let score = 0;
+        let spikes = [];
+        let balloonPosition = { x: gameWidth / 2, y: gameHeight / 2 };
+
+        function createSpike() {
+            const spike = document.createElement('div');
+            spike.classList.add('spike');
+            spike.style.left = `${Math.random() * (gameWidth - 20)}px`; // random horizontal position
+            spike.style.top = `-40px`; // starts above the screen
+            document.body.appendChild(spike);
+            spikes.push(spike);
+        }
+
+        function moveBalloon(event) {
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+            balloonPosition.x = mouseX - balloon.offsetWidth / 2;
+            balloonPosition.y = mouseY - balloon.offsetHeight / 2;
+
+            balloon.style.left = `${balloonPosition.x}px`;
+            balloon.style.top = `${balloonPosition.y}px`;
+        }
+
+        function updateSpikes() {
+            spikes.forEach(spike => {
+                let spikeRect = spike.getBoundingClientRect();
+                spike.style.top = `${spikeRect.top + 5}px`; // move spike downward
+
+                // Remove spikes that go off the screen
+                if (spikeRect.top > gameHeight) {
+                    spike.remove();
+                    spikes = spikes.filter(s => s !== spike);
+                    score++;
+                }
+
+                // Check for collisions with the balloon
+                const balloonRect = balloon.getBoundingClientRect();
+                if (balloonRect.left < spikeRect.left + spikeRect.width &&
+                    balloonRect.left + balloonRect.width > spikeRect.left &&
+                    balloonRect.top < spikeRect.top + spikeRect.height &&
+                    balloonRect.top + balloonRect.height > spikeRect.top) {
+                    alert('Game Over!');
+                    resetGame();
+                }
+            });
+        }
+
+        function resetGame() {
+            score = 0;
+            spikes.forEach(spike => spike.remove());
+            spikes = [];
+            scoreElement.textContent = `Score: ${score}`;
+        }
+
+        function gameLoop() {
+            updateSpikes();
+            scoreElement.textContent = `Score: ${score}`;
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Generate spikes every 2 seconds
+        setInterval(createSpike, 2000);
+        gameLoop();
+
+        // Move the balloon with the mouse
+        window.addEventListener('mousemove', moveBalloon);
+    </script>
+</body>
+</html>
