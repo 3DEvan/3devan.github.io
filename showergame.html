@@ -57,7 +57,7 @@
 
         // Create a video element for webcam stream
         const video = document.createElement('video');
-        video.style.display = 'none';
+        video.style.display = 'none'; // Hide the video element
         document.body.appendChild(video);
 
         // Webcam setup
@@ -67,6 +67,7 @@
                 video.srcObject = stream;
                 await video.play();
                 console.log("Webcam setup successful!");
+                startGame(); // Start game after webcam setup
             } catch (error) {
                 console.error("Error accessing the webcam:", error);
                 alert("Please allow webcam access to play the game!");
@@ -154,15 +155,13 @@
         // Start the game
         async function startGame() {
             await loadModels();
-            await setupWebcam();
             gameLoop();
             setInterval(createSpike, 2000); // Create spikes every 2 seconds
             setInterval(detectFace, 100);  // Detect face every 100ms
         }
 
-        // Start the game
-        startGame();
+        // Start the webcam and load models on page load
+        setupWebcam();
     </script>
 </body>
 </html>
-
