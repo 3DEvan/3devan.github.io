@@ -38,16 +38,51 @@
     <div id="balloon"></div>
     <div id="score">Score: 0</div>
 
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
+
     <script>
         const balloon = document.getElementById('balloon');
         const scoreElement = document.getElementById('score');
         const gameWidth = window.innerWidth;
         const gameHeight = window.innerHeight;
-        const balloonSpeed = 5;
         let score = 0;
         let spikes = [];
         let balloonPosition = { x: gameWidth / 2, y: gameHeight / 2 };
 
+        // Create a video element for webcam stream
+        const video = document.createElement('video');
+        document.body.append(video);
+
+        // Setup webcam stream
+        async function setupWebcam() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+            video.srcObject = stream;
+            video.play();
+        }
+
+        // Load face-api.js models from the /models folder
+        async function loadModels() {
+            await faceapi.nets.ssdMobilenetv1.loadFromUri('/models');
+            await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+            await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+        }
+
+        // Detect face and move the balloon based on eye position
+        async function detectFace() {
+            const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors();
+
+            if (detections.length > 0) {
+                // Get the position of the left eye for balloon movement
+                const { x, y } = detections[0].landmarks.getLeftEye();
+                balloonPosition.x = x - balloon.offsetWidth / 2;
+                balloonPosition.y = y - balloon.offsetHeight / 2;
+
+                balloon.style.left = `${balloonPosition.x}px`;
+                balloon.style.top = `${balloonPosition.y}px`;
+            }
+        }
+
+        // Generate spikes at random intervals
         function createSpike() {
             const spike = document.createElement('div');
             spike.classList.add('spike');
@@ -57,16 +92,7 @@
             spikes.push(spike);
         }
 
-        function moveBalloon(event) {
-            const mouseX = event.clientX;
-            const mouseY = event.clientY;
-            balloonPosition.x = mouseX - balloon.offsetWidth / 2;
-            balloonPosition.y = mouseY - balloon.offsetHeight / 2;
-
-            balloon.style.left = `${balloonPosition.x}px`;
-            balloon.style.top = `${balloonPosition.y}px`;
-        }
-
+        // Update spikes and handle collisions
         function updateSpikes() {
             spikes.forEach(spike => {
                 let spikeRect = spike.getBoundingClientRect();
@@ -91,6 +117,7 @@
             });
         }
 
+        // Reset the game when it's over
         function resetGame() {
             score = 0;
             spikes.forEach(spike => spike.remove());
@@ -98,18 +125,26 @@
             scoreElement.textContent = `Score: ${score}`;
         }
 
+        // Main game loop
         function gameLoop() {
             updateSpikes();
             scoreElement.textContent = `Score: ${score}`;
             requestAnimationFrame(gameLoop);
         }
 
-        // Generate spikes every 2 seconds
-        setInterval(createSpike, 2000);
-        gameLoop();
+        // Load models and start the game
+        async function startGame() {
+            await loadModels();
+            setupWebcam();
+            gameLoop();
+            setInterval(createSpike, 2000);  // Create spikes every 2 seconds
+        }
 
-        // Move the balloon with the mouse
-        window.addEventListener('mousemove', moveBalloon);
+        // Detect the face every 100 milliseconds
+        setInterval(detectFace, 100);
+
+        // Start the game
+        startGame();
     </script>
 </body>
 </html>
