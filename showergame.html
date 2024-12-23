@@ -3,27 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ultra fun shower game (beta)</title>
+    <title>Head Movement Game</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #87CEEB; /* Light sky blue background */
+            background: linear-gradient(to bottom, #87CEEB, #1E90FF); /* Smooth sky gradient */
+            font-family: Arial, sans-serif;
         }
         #balloon {
             position: absolute;
             width: 50px;
             height: 75px;
-            background-color: red;
+            background: radial-gradient(circle, red, #8B0000);
             border-radius: 50%;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
         .spike {
             position: absolute;
             width: 20px;
             height: 40px;
-            background-color: #8B0000; /* Dark red for spikes */
+            background: linear-gradient(to top, #8B0000, #FF4500); /* Smooth gradient for spikes */
             border-radius: 5px 5px 0 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
         #score {
             position: absolute;
@@ -31,6 +33,7 @@
             left: 10px;
             font-size: 24px;
             color: white;
+            text-shadow: 1px 1px 3px black;
         }
     </style>
 </head>
@@ -38,7 +41,7 @@
     <div id="balloon"></div>
     <div id="score">Score: 0</div>
 
-    <script defer src="./face-api.js"></script> <!-- Make sure face-api.js is available locally -->
+    <script defer src="./face-api.js"></script> <!-- Ensure face-api.js is locally available -->
     <script>
         const balloon = document.getElementById('balloon');
         const scoreElement = document.getElementById('score');
@@ -48,24 +51,25 @@
         let spikes = [];
         let balloonPosition = { x: gameWidth / 2, y: gameHeight / 2 };
 
-        // Set initial balloon position
+        // Set balloon initial position
         balloon.style.left = `${balloonPosition.x}px`;
         balloon.style.top = `${balloonPosition.y}px`;
 
         // Create a video element for webcam stream
         const video = document.createElement('video');
         video.style.display = 'none';
-        document.body.append(video);
+        document.body.appendChild(video);
 
-        // Setup webcam stream
+        // Webcam setup
         async function setupWebcam() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
                 await video.play();
                 console.log("Webcam setup successful!");
-            } catch (err) {
-                console.error("Error accessing webcam:", err);
+            } catch (error) {
+                console.error("Error accessing the webcam:", error);
+                alert("Please allow webcam access to play the game!");
             }
         }
 
@@ -73,35 +77,34 @@
         async function loadModels() {
             await faceapi.nets.ssdMobilenetv1.loadFromUri('./models');
             await faceapi.nets.faceLandmark68Net.loadFromUri('./models');
-            console.log("Face models loaded!");
+            console.log("Face models loaded successfully!");
         }
 
-        // Detect face and move the balloon
+        // Detect face and move balloon
         async function detectFace() {
             if (!video.readyState) return;
 
-            const detections = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options()).withFaceLandmarks();
-            if (detections.length > 0) {
-                // Get the position of the nose landmark (or use another landmark, e.g., eyes)
-                const nose = detections[0].landmarks.getNose();
+            const detections = await faceapi.detectSingleFace(video, new faceapi.SsdMobilenetv1Options()).withFaceLandmarks();
+            if (detections) {
+                const nose = detections.landmarks.getNose();
                 if (nose && nose[3]) {
-                    const { x, y } = nose[3]; // Nose tip position
-                    balloonPosition.x = (x / video.videoWidth) * gameWidth; // Scale to game width
-                    balloonPosition.y = (y / video.videoHeight) * gameHeight; // Scale to game height
+                    const { x, y } = nose[3];
+                    balloonPosition.x = (x / video.videoWidth) * gameWidth; // Scale nose position to game
+                    balloonPosition.y = (y / video.videoHeight) * gameHeight;
 
-                    // Update balloon position
+                    // Update balloon position smoothly
                     balloon.style.left = `${balloonPosition.x}px`;
                     balloon.style.top = `${balloonPosition.y}px`;
                 }
             }
         }
 
-        // Generate spikes at random intervals
+        // Generate a spike at a random position
         function createSpike() {
             const spike = document.createElement('div');
             spike.classList.add('spike');
-            spike.style.left = `${Math.random() * (gameWidth - 20)}px`; // random horizontal position
-            spike.style.top = `-40px`; // starts above the screen
+            spike.style.left = `${Math.random() * (gameWidth - 20)}px`; // Random horizontal position
+            spike.style.top = `-40px`; // Start off-screen
             document.body.appendChild(spike);
             spikes.push(spike);
         }
@@ -109,10 +112,10 @@
         // Update spikes and handle collisions
         function updateSpikes() {
             spikes.forEach(spike => {
-                let spikeRect = spike.getBoundingClientRect();
-                spike.style.top = `${spikeRect.top + 5}px`; // move spike downward
+                const spikeRect = spike.getBoundingClientRect();
+                spike.style.top = `${spikeRect.top + 5}px`; // Move spike downward
 
-                // Remove spikes that go off the screen
+                // Remove spikes that go off-screen
                 if (spikeRect.top > gameHeight) {
                     spike.remove();
                     spikes = spikes.filter(s => s !== spike);
@@ -121,17 +124,19 @@
 
                 // Check for collisions with the balloon
                 const balloonRect = balloon.getBoundingClientRect();
-                if (balloonRect.left < spikeRect.left + spikeRect.width &&
+                if (
+                    balloonRect.left < spikeRect.left + spikeRect.width &&
                     balloonRect.left + balloonRect.width > spikeRect.left &&
                     balloonRect.top < spikeRect.top + spikeRect.height &&
-                    balloonRect.top + balloonRect.height > spikeRect.top) {
-                    alert('Game Over!');
+                    balloonRect.top + balloonRect.height > spikeRect.top
+                ) {
+                    alert("Game Over!");
                     resetGame();
                 }
             });
         }
 
-        // Reset the game when it's over
+        // Reset the game
         function resetGame() {
             score = 0;
             spikes.forEach(spike => spike.remove());
@@ -146,13 +151,13 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Load models and start the game
+        // Start the game
         async function startGame() {
             await loadModels();
             await setupWebcam();
             gameLoop();
-            setInterval(createSpike, 2000);  // Create spikes every 2 seconds
-            setInterval(detectFace, 100);   // Detect face every 100 milliseconds
+            setInterval(createSpike, 2000); // Create spikes every 2 seconds
+            setInterval(detectFace, 100);  // Detect face every 100ms
         }
 
         // Start the game
@@ -160,3 +165,4 @@
     </script>
 </body>
 </html>
+
